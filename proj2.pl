@@ -13,7 +13,7 @@
 %---------------------------------------------------------------------------%
 %------------------------------ Main Predicate -----------------------------%
 %---------------------------------------------------------------------------%
-% ddddd
+% comment for main predicate
 puzzle_solution([Heading|Rest]) :- 
     transpose([Heading|Rest], [_|TRest]), 
     valid_digit(Rest), 
@@ -27,15 +27,16 @@ puzzle_solution([Heading|Rest]) :-
 %---------------------------------------------------------------------------%
 %----------------------------- Helper Predicates ---------------------------%
 %---------------------------------------------------------------------------%
-% valid_digit(?List)
-% List is list of lists, each inner list represents a row in the puzzle
+% valid_digit(?Lists)
+% Lists is list of lists, each inner list represents a row in the puzzle
 % This predicate checks that all numbers in the list are between 1 and 9, and
 % they are all different. For any unbound variables in the list, this
 % predicate gives them an appropriate range based on other bound values.
-valid_digit([]).
-valid_digit([[_|Cells]|Rest]) :- 
-    Cells ins 1..9, all_distinct(Cells), valid_digit(Rest).
+valid_digit(Lists) :- maplist(check_valid_digit, Lists).
 
+check_valid_digit([_|Row]) :- 
+    Row ins 1..9, 
+    all_distinct(Row).
 
 
 %% valid_diagonal(-Puzzle)
@@ -61,16 +62,14 @@ valid_diagonal(Puzzle, X, Padding) :-
 
 
 % index(+ColumnNumber, +RowNumber, +List, -Item)
+% List is a 2D list, representing a list of rows.
+% index/4 holds when Item is the element in the List, at row RowNumber and
+% column ColumnNumber. Assume that counting of rows and columns starts at 0.
 index(ColumnNumber, RowNumber, List, Item) :- 
     nth0(RowNumber, List, Row), nth0(ColumnNumber, Row, Item).
 
 
-
 % valid_row(?List)
-%% valid_row([]).
-%% valid_row([[Heading|Row]|Rest]) :- 
-%%     (sum(Row, #=, Heading); product_list(Row, 1, Heading)), valid_row(Rest).
-
 valid_row(Rows) :- maplist(check_valid_row, Rows).
 
 check_valid_row([Heading|Row]) :- 
@@ -80,19 +79,14 @@ check_valid_row([Heading|Row]) :-
 
 
 % product_list(+List, +Accumulator, -Product)
-%% In this mode, given a list of number and the initial accumulator, this
-%% predicate calcualtes the product of all the numbers in the list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % product_list(-List, +Accumulator, +Product)
-%% In this mode, given the initial accumulator and the product of all the
-%% numbers in the list, this predicate tries to find values for unbound
-%% variables in the list, or give them a range if there are multiple solutions
+% product_list/3 takes a list and a number as initial accumulator, and it
+% holds when the product of all elements in the list is the same as Product
 product_list([], P, P).
 product_list([X|Xs] , Acc, P) :- 
     Acc1 #= X * Acc, 
     product_list(Xs, Acc1, P).
 
 % asign_value(?List)
-% This predicate asign values to unbound elements in the List
-% based on each element's own range restriction
+% asign_value/1 takes a list, and holds when all elements are ground.
 asign_value(List) :- maplist(indomain, List).
